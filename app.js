@@ -18,7 +18,23 @@ function closeModal(id){document.getElementById(id).classList.remove('open')}
 function goFullscreen(){const el=document.documentElement;if(el.requestFullscreen)el.requestFullscreen().catch(()=>{})}
 function switchScreen(id){document.querySelectorAll('.app-screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
 function startApp(){initAudio();goFullscreen();registerSW();switchScreen('splashScreen');setTimeout(()=>{switchScreen('patientScreen');renderPatients();},4000)}
-function registerSW(){if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}),{once:true});}}
+function registerSW(){
+  if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')){
+    const register = () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker Registered!', reg))
+        .catch(err => console.log('Service Worker registration failed:', err));
+    };
+    if (document.readyState === 'complete') {
+      register();
+    } else {
+      window.addEventListener('load', register, {once:true});
+    }
+  }
+}
+
+// Call registration immediately
+registerSW();
 
 function triggerSBARHandover(){let newExam;do{newExam=examScenarios[Math.floor(Math.random()*examScenarios.length)]}while(currentExam&&newExam.id===currentExam.id);currentExam=newExam;document.getElementById('sbar_s').innerText=currentExam.sbar.s;document.getElementById('sbar_b').innerText=currentExam.sbar.b;document.getElementById('sbar_a').innerText=currentExam.sbar.a;document.getElementById('sbar_r').innerText=currentExam.sbar.r;openModal('sbarModal')}
 function startExamAfterSBAR(){closeModal('sbarModal');resetVent();isExamRunning=true;appliedIntervention=null;currentVitals={hr:80,spo2:98};initialExamState={vt:state.vt,rr:state.rr,peep:state.peep,fio2:state.fio2,pi:state.pi};state.compliance=currentExam.c;state.resistance=currentExam.r;state.leak=currentExam.l;if(currentExam.rr_force!==null){state.rr=currentExam.rr_force;document.getElementById('dispRr').innerText=state.rr}document.getElementById('activePatientName').innerText='🚨 '+currentExam.title;document.getElementById('dispScen').innerText='TEST';document.getElementById('exitBtn').style.display='none';document.getElementById('submitExamBtn').style.display='block';document.getElementById('examTimerDisplay').style.display='flex';let timeLeft=15;document.getElementById('examTimerDisplay').innerText=`⏳ 00:${String(timeLeft).padStart(2,'0')}`;clearInterval(examTimerInterval);examTimerInterval=setInterval(()=>{timeLeft--;document.getElementById('examTimerDisplay').innerText=`⏳ 00:${String(Math.max(timeLeft,0)).padStart(2,'0')}`;if(timeLeft<=0)evaluateExam()},1000);simActive=true;if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();switchScreen('ventScreen');if(!chartsReady){resizeAllCanvases();chartsReady=true}requestAnimationFrame(engine)}
