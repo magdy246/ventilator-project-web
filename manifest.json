@@ -1,0 +1,11 @@
+{
+  "name": "Vent-Pro 840 - ICU Simulator & Exam",
+  "short_name": "ICU Heroes",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000033",
+  "lang": "ar",
+  "dir": "rtl",
+  "description": "Offline ventilator simulator graduation project"
+}
